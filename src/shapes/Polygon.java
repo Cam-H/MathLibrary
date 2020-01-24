@@ -1,5 +1,6 @@
 package shapes;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.geom.GeneralPath;
 import java.util.ArrayList;
@@ -252,7 +253,8 @@ public class Polygon {
 	}
 
 	public void render(Graphics2D g2d, int xOffset, int yOffset) {
-		
+		int vertexCount = points.size();
+
 		boolean fill = true;
 		
 		if(fill) {
@@ -266,18 +268,21 @@ public class Polygon {
 			
 			path.closePath();
 			
+			g2d.setColor(new Color(0x777777));
 			g2d.fill(path);
-		}else {
 			
-			int vertexCount = points.size();
+			g2d.setColor(new Color(0x0000ff));
 
 			g2d.drawLine((int) points.get(0).x() + xOffset, (int) points.get(0).y() + yOffset,
 					(int) points.get(vertexCount - 1).x() + xOffset, (int) points.get(vertexCount - 1).y() + yOffset);
-
+			
 			for (int i = 0; i < vertexCount - 1; i++) {
 				g2d.drawLine((int) points.get(i).x() + xOffset, (int) points.get(i).y() + yOffset,
 						(int) points.get(i + 1).x() + xOffset, (int) points.get(i + 1).y() + yOffset);
 			}
+		}else {
+			
+			
 			
 		}
 		
