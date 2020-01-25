@@ -7,40 +7,34 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.image.BufferStrategy;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.JFrame;
 
+import collision.SATCollision;
+import functions.Trigonometry;
 import shapes.Body;
 import shapes.Component;
 import shapes.Polygon;
 import vectors.Point;
 import vectors.Vector;
 
-public class ToolTesting extends Thread implements MouseListener, MouseMotionListener{
+public class ToolTesting5 extends Thread implements MouseListener, MouseMotionListener{
 	
 	JFrame frame;
 	
 	Polygon p;
 	
 	Body b;
-	Body c;
-	
-	Vector thrust;
-	Vector contact = new Vector();
-	
+			
 	boolean pressed = false;
-	Point pullPoint;
 	int mx = 0, my = 0;
 	
 	double theta = 0;
-	
-	Vector overlap = new Vector();
-	
+		
 	boolean updateError = false;
 	
-	public ToolTesting() {
+	public ToolTesting5() {
 		
 		frame = new JFrame();
 		
@@ -61,45 +55,35 @@ public class ToolTesting extends Thread implements MouseListener, MouseMotionLis
 		
 		List<Point> points = new ArrayList<Point>();
 		points.add(new Point(100, 100));
-		points.add(new Point(400, 100));
-		points.add(new Point(150, 200));
-
-		List<Component> ps = new ArrayList<Component>();
-		ps.add(new Component(points));
-		
-		points = new ArrayList<Point>();
-		points.add(new Point(200, 200));
-		points.add(new Point(400, 200));
-		points.add(new Point(400, 400));
-		points.add(new Point(200, 400));
+		points.add(new Point(300, 100));
+		points.add(new Point(200, 500));
+		points.add(new Point(400, 900));
+		points.add(new Point(150, 900));
+		points.add(new Point(50, 500));
 
 		
+		List<Component> ps = new ArrayList<Component>();				
 		ps.add(new Component(points));
+
+//		p = new Polygon(points);
 		
 		b = new Body(ps);
 		b.moveTo(frame.getWidth() / 2, frame.getHeight() / 2);
-//		b.setVelocity(2, 0);
-		
-		List<Point> cps = new ArrayList<Point>();
-		cps.add(new Point(100, 100));
-		cps.add(new Point(100, 150));
-		cps.add(new Point(150, 150));
-		cps.add(new Point(150, 100));
-		
-		c = new Body(new ArrayList<Component>(Arrays.asList(new Component(cps))));
 
-		
-		thrust = new Vector(400, 400, 100, 100);
 
 		while(true) {
-			
+
 			if(!updateError) {
 				try {
 					update();
-				}catch(Exception e) {updateError = true;}
+				}catch(Exception e) {updateError = true;e.printStackTrace();}
 			}
 			
-			render();
+			try {
+				render();
+			}catch(Exception e) {
+				e.printStackTrace();
+			}
 			
 			try {
 				Thread.sleep(1000 / 60);
@@ -112,24 +96,7 @@ public class ToolTesting extends Thread implements MouseListener, MouseMotionLis
 	}
 	
 	public void update() {
-
-		b.update();
-		c.update();
-		
-		b.removeForces();
-		c.removeForces();
-
-		if(pullPoint != null) {
-			if(!pressed) {
-				Vector velocity = new Vector(c.getCenterOfMass(), pullPoint);
-				c.setVelocity(velocity.dx() / 100, velocity.dy() / 100);
-
-				pullPoint = null;
-			}	
-		}
-		
-		c.checkCollision(b);
-				
+	
 	}
 	
 	public void render() {
@@ -150,21 +117,44 @@ public class ToolTesting extends Thread implements MouseListener, MouseMotionLis
 		g.setColor(new Color(0x0000ff));
 		g.fillOval(frame.getWidth() / 2 - 5, frame.getHeight() / 2 - 5, 10, 10);
 		
-		g.setColor(new Color(0x000000));
-		c.render(g);
 		
 		g.setColor(new Color(0x000000));
 		b.render(g);
 		
-		
-		if(pullPoint != null) {
-			g.drawLine((int)pullPoint.x(), (int)pullPoint.y(), mx, my);
-		}
-				
 		g.setColor(new Color(0xff0000));
-		g.drawLine((int)contact.tail.x(), (int)contact.tail.y(), (int)contact.head.x(), (int)contact.head.y());
+		System.out.println("udogauwida");
+		if(b != null) {
+			Polygon p = b.getComponents().get(0);
+			List<Vector> edges = p.getEdgeList();
+
+			Point concave = null;
+
+			for(int i = 0; i < edges.size(); i++) {
+				
+				Vector a = edges.get(i).clone();a.flip();
+				Vector b = edges.get(i < edges.size() - 1 ? i + 1 : 0);
+				Vector c = a.unitVector();
+				c.addVector(b.unitVector());
+				c.scale(10);
+				
+//				c.offset(this.b.getCenterOfMass().x() + b.x0(), this.b.getCenterOfMass().y() + b.y0());
+				double internalAngle = Math.acos(a.dotProduct(c) / a.magnitude() / c.magnitude()) + Math.acos(b.dotProduct(c) / b.magnitude() / c.magnitude());
+
+				System.out.println(internalAngle);
+				if(SATCollision.checkForCollision(p, 1, c.head.x(), c.head.y()) == null) {//The point is concave if the internal angle around the point is greater than 180
+					System.err.println('a');
+					concave = new Point(b.x0() + this.b.getCenterOfMass().x(), b.y0() + this.b.getCenterOfMass().y());
+				}
+				
+				g.drawLine((int)c.x0(), (int)c.y0(), (int)c.x1(), (int)c.y1());
+			}
+			
+			if(concave != null) {
+				g.fillOval((int)concave.x() - 5, (int)concave.y() - 5, 10, 10);
+			}
+		}
 		
-//		g.drawLine((int)thrust.x0(), (int)thrust.y0(), (int)thrust.x1(), (int)thrust.y1());
+		
 		g.drawString(mx + " " + my, 100, 100);
 
 		/////////////////////////////////////
@@ -174,18 +164,13 @@ public class ToolTesting extends Thread implements MouseListener, MouseMotionLis
 	}
 	
 	public static void main(String[] args) {
-		new ToolTesting();
+		new ToolTesting5();
 	}
 
 	@Override
 	public void mouseDragged(MouseEvent e) {
 		mx = e.getX();
-		my = e.getY();
-		
-		c.moveTo(mx, my);
-		c.setVelocity(0, 0);
-		
-		thrust = new Vector(400, 400, mx, my);
+		my = e.getY();		
 	}
 
 	@Override
@@ -206,7 +191,11 @@ public class ToolTesting extends Thread implements MouseListener, MouseMotionLis
 	@Override
 	public void mousePressed(MouseEvent e) {
 		if(!pressed) {
-			pullPoint = new Point(mx, my);
+			
+//			Body entity = new Body(Arrays.asList(outline.clone()));
+//			entity.moveTo(mx, my);
+//			
+//			entities.add(entity);
 		}
 		
 		pressed = true;
@@ -216,5 +205,6 @@ public class ToolTesting extends Thread implements MouseListener, MouseMotionLis
 	public void mouseReleased(MouseEvent e) {
 		pressed = false;
 	}
+
 
 }

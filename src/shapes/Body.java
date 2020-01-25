@@ -65,6 +65,61 @@ public class Body {
 	public Body(List<Component> components) {		
 		this.components = components;
 		
+		for(int i = 0; i < components.size(); i++) {
+			Component component = components.get(i);
+			
+			boolean split = false;
+			
+			do {
+				split = false;
+				
+				List<Point> concaveVertices = component.getConcaveVertices();
+				
+				if(concaveVertices.size() > 0) {
+					System.out.println("mmmda");
+					List<Polygon[]> possibleCuts = component.getCutOptions(concaveVertices.get(0));
+					
+					int z = 0;
+					int baselineCutCount = -1;
+					
+					for(int j = 0; j < possibleCuts.size(); j++) {
+						Polygon[] cuts = possibleCuts.get(j);
+						
+						int concaveVertexCount = cuts[0].getConcaveVertices().size() + cuts[1].getConcaveVertices().size();
+						
+						if(baselineCutCount == -1 || baselineCutCount > concaveVertexCount) {
+							z = j;
+							baselineCutCount = concaveVertexCount;
+							
+							if(concaveVertexCount == 0) {
+								break;
+							}
+						}
+						
+					}
+					
+					
+					components.remove(i);
+					components.add(i, new Component(possibleCuts.get(z)[0].points));
+					components.add(i, new Component(possibleCuts.get(z)[1].points));
+//					for(int z = j + 2; z != j; z++) {
+//						if(z > component.points.size()) {
+//							z = 0;
+//						}
+//					}
+//					
+//					System.out.println(j);
+				}
+				
+//				if(concave != null) {
+//					
+//					split = false;
+//				}
+				
+			}while(split);
+			
+		}
+		System.out.println(components.size());
 		externalForces = new ArrayList<Force>();
 		forceUpdateRequired = true;
 		
@@ -93,6 +148,7 @@ public class Body {
 		environment = new Environment();
 				
 	}
+	
 
 	
 	private void calculateCharacteristics() {

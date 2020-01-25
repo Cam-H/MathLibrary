@@ -16,7 +16,6 @@ public class SATCollision {
     private double plx;
     private double ply;
     
-//    private List<Vector> shadowAxes;
     private static List<Vector> projections;
     private static List<Vector> overlaps;
 
@@ -30,7 +29,6 @@ public class SATCollision {
     public static Vector checkForCollision(Polygon a, double radius, double cx, double cy){
     	projections = new ArrayList<Vector>();
     	overlaps = new ArrayList<Vector>();
-//    	this.shadowAxes = new ArrayList<Vector>();
     	
         minimumDisplacement = null;
 
@@ -38,10 +36,6 @@ public class SATCollision {
         
         shadowAxes = addUniqueAxes(shadowAxes, a);
         shadowAxes = addCircleAxes(shadowAxes, cx, cy);
-        
-//        for(int i = 0; i < shadowAxes.size(); i++) {
-//        	this.shadowAxes.add(shadowAxes.get(i).clone());
-//        }
         
         for(Vector surface : shadowAxes){
 
@@ -265,23 +259,6 @@ public class SATCollision {
     	
     	return axes;
     }
-
-//    public static Point getProjectionOfPoint(Vector base, Point b){
-//        Vector v = new Vector(base.tail, b);
-//
-//        Point p = getVectorProjection(base, v);
-//        p.offset(base.tail.x(), base.tail.y());
-//
-//        return p;
-//    }
-//
-//    public Point getVectorProjection(Vector base, Vector projected){
-//        return base.getScaled((float)(dotProduct(projected, base) / base.magSquared()));
-//    }
-//
-//    public double dotProduct(Vector a, Vector b){
-//        return (a.head.x() - a.tail.x()) * (b.head.x() - b.tail.x()) + (a.head.y() - a.tail.y()) * (b.head.y() - b.tail.y());
-//    }
 
     public void setTarget(double newx, double newy){
         plx = newx;

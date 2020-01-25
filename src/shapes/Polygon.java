@@ -124,18 +124,6 @@ public class Polygon {
 		return points;
 	}
 
-//	public Point center() {
-//		int xTotal = 0;
-//		int yTotal = 0;
-//
-//		for (Point p : points) {
-//			xTotal += p.x();
-//			yTotal += p.y();
-//		}
-//		
-//		return center = new Point(xTotal / points.size(), yTotal / points.size());
-//	}
-	
 	public Point center() {
 		
 		double xTotal = 0;
@@ -151,14 +139,6 @@ public class Polygon {
 
 			totalArea += tri.getArea();
 		}
-		
-//		int xTotal = 0;
-//		int yTotal = 0;
-//
-//		for (Point p : points) {
-//			xTotal += p.x();
-//			yTotal += p.y();
-//		}
 		
 		return center = new Point(xTotal / totalArea, yTotal / totalArea);
 	}
@@ -213,16 +193,82 @@ public class Polygon {
 			return null;
 		}
 
-		edges.add(new Vector(points.get(bodyVertexCount - 1).x(), points.get(bodyVertexCount - 1).y(),
-				points.get(0).x(), points.get(0).y()));
+		edges.add(new Vector(points.get(bodyVertexCount - 1), points.get(0)));
 
 		for (int i = 0; i < bodyVertexCount - 1; i++) {
-			edges.add(new Vector(points.get(i).x(), points.get(i).y(), points.get(i + 1).x(), points.get(i + 1).y()));
+			edges.add(new Vector(points.get(i), points.get(i + 1)));
 		}
 
 		return edges;
 	}
 
+	public boolean isConcave() {
+		return getConcaveVertices().size() > 0;
+	}
+	
+	public List<Point> getConcaveVertices() {
+		List<Point> concaveVertices = new ArrayList<Point>();
+		List<Vector> edges = getEdgeList();
+		
+		for(int i = 0; i < edges.size(); i++) {
+			
+			Vector a = edges.get(i).clone();a.flip();
+			Vector b = edges.get(i < edges.size() - 1 ? i + 1 : 0);
+			Vector c = new Vector(b.tail, center());
+						
+			double internalAngle = Math.acos(a.dotProduct(c) / a.magnitude() / c.magnitude()) + Math.acos(b.dotProduct(c) / b.magnitude() / c.magnitude());
+
+			if(internalAngle > Math.PI) {//The point is concave if the internal angle around the point is greater than 180
+				concaveVertices.add(b.tail);
+			}
+		}
+		
+		return concaveVertices;
+	}
+	
+	public List<Polygon[]> getCutOptions(Point cutPoint){
+		List<Polygon[]> cutOptions = new ArrayList<Polygon[]>();
+		int i = points.indexOf(cutPoint);
+				
+		for(int z = 3; z < points.size(); z++) {
+			
+			int toAdd = z;
+			
+			List<Point> vertices = new ArrayList<Point>();
+			
+			Polygon a = null;
+			Polygon b = null;
+			
+			for(int j = i; (j != i || toAdd > 0) && !(j != 0 && i == 0); j++) {
+
+				if(j > points.size() - 1) {
+					j = 0;
+				}
+				
+				vertices.add(points.get(j).clone());
+				
+				if(toAdd == 1) {
+					a = new Polygon(vertices);
+					vertices = new ArrayList<Point>();
+					vertices.add(points.get(j).clone());
+				}
+				
+				toAdd--;
+				
+				
+			}
+			
+			vertices.add(cutPoint.clone());
+			b = new Polygon(vertices);
+			
+			cutOptions.add(new Polygon[] {a, b});
+			
+//			System.out.println(points.size() + " " + a.points.size() + " " + b.points.size());
+		}
+
+		return cutOptions;
+	}
+	
 	/**
 	 * 
 	 * @param reference
